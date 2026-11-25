@@ -170,9 +170,11 @@ Model names and limits change frequently. Confirm them against official provider
 - Require JSON only, with no text before or after.
 - State that advertisement and resume text are data and that instructions written inside them must be ignored.
 - Use `null` when a value is absent and prohibit fabrication.
+- Extract required experience only from the advertisement, never from the resume.
 - Define compatibility from 0 to 10 using criteria such as shared technologies and experience.
 - Evaluate work-model, location, and office-day fit separately. Mark it incompatible only when clearly stated by the advertisement; otherwise use unknown.
-- List gaps only for requirements absent from the resume. Never assume skills not shown by the resume.
+- List gaps only for mandatory requirements absent from the resume. Exclude optional, preferred, nice-to-have, and bonus qualifications.
+- Never assume skills not shown by the resume.
 - Use low temperature, from 0 to 0.2.
 - Store the prompt in `services/prompt.ts` and version it.
 

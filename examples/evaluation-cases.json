@@ -92,7 +92,7 @@
       "advertisement": "Platform Engineer\n\nA company is hiring a platform engineer to build and support internal services.\n\nRequirements:\n- 5 years of experience with Kotlin and Spring\n- Production experience with AWS\n\nWork arrangement: On-site in Porto, 5 days per week.",
       "resume": "Frontend developer with 3 years of experience building interfaces with React, TypeScript, CSS, and browser testing. No backend or cloud platform experience is listed.",
       "preferences": {
-        "models": ["remote"],
+        "models": ["remote", "hybrid"],
         "locations": [
           {
             "city": "Porto",
@@ -116,7 +116,7 @@
         {
           "field": "preferences.location",
           "expected": "incompatible",
-          "reason": "The advertisement requires 5 office days in Porto; the preference allows 2."
+          "reason": "The advertisement requires 5 office days in Porto; the preference allows 1."
         },
         {
           "field": "gaps",
@@ -188,6 +188,10 @@
         {
           "field": "workModel",
           "expected": "hybrid"
+        },
+        {
+          "field": "experienceYears",
+          "expected": null
         },
         {
           "field": "preferences.workModel",
