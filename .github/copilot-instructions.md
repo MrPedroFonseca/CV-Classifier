@@ -1,59 +1,53 @@
-# Instruções do projeto
+# Project Instructions
 
-## Objetivo
+## Objective
 
-O projeto é um analisador de anúncios de emprego com IA. Deve receber um anúncio e um currículo, enviá-los a um modelo escolhido e devolver dados estruturados e uma avaliação de compatibilidade.
+This project is an AI-powered job advertisement analyzer. It receives a job advertisement and a resume, sends them to a selected model, and returns structured data and a compatibility assessment.
 
-## Documentação
+## Documentation
 
-- Seguir `docs/REQUISITOS.md`.
-- Não inventar requisitos que não estejam documentados.
-- Implementar o projeto em fases pequenas e validar cada fase antes de avançar.
+- Follow `docs/REQUIREMENTS.md`.
+- Do not invent requirements that are not documented.
+- Implement the project in small phases and validate each phase before proceeding.
 
 ## Stack
 
 - Node.js 20+
-- Backend em TypeScript estrito e Express
-- Zod para validação
-- Vitest para testes
-- pdf-parse e multer para PDFs
-- Frontend em React com Vite e TypeScript
-- Groq e, mais tarde, Gemini
+- Strict TypeScript
+- Express
+- Zod
+- Vitest
+- pdf-parse and Multer for PDF uploads
+- React and Vite
+- Groq and, later, Gemini
 
-## Estrutura
+## Structure
 
-- `backend/src/index.ts`: arranque do servidor
-- `backend/src/config/provedores.ts`: configuração central dos fornecedores
-- `backend/src/routes/analisar.ts`: rotas HTTP
-- `backend/src/services/modelo.ts`: toda a comunicação com modelos
-- `backend/src/services/prompt.ts`: construção e versionamento do prompt
-- `backend/src/schemas/resultado.ts`: schema Zod da resposta
-- `backend/tests/`: testes do backend
-- `frontend/src/`: aplicação React
-- `docs/REQUISITOS.md`: requisitos e contrato da API
-- `exemplos/`: anúncios fictícios e dados de avaliação
+- `backend/src/index.ts`: server startup
+- `backend/src/config/providers.ts`: central provider configuration
+- `backend/src/routes/analyze.ts`: HTTP routes
+- `backend/src/services/model.ts`: all model communication
+- `backend/src/services/prompt.ts`: prompt construction and versioning
+- `backend/src/schemas/result.ts`: Zod response schema
+- `backend/tests/`: backend tests
+- `frontend/src/`: React application
+- `docs/REQUIREMENTS.md`: requirements and API contract
+- `examples/`: fictional advertisements and evaluation data
 
-## Regras obrigatórias
+## Mandatory Rules
 
-- Usar TypeScript em modo estrito.
-- Validar entradas e respostas externas.
-- Nunca enviar chaves para o frontend.
-- Guardar chaves apenas em ficheiros `.env`.
-- Nunca guardar ou registar o currículo no backend.
-- Nunca registar chaves, currículos ou anúncios em logs.
-- Remover email, telefone e morada do currículo antes de o enviar ao modelo.
-- Usar `null` para dados não existentes; não inventar valores.
-- Permitir apenas fornecedores e modelos definidos na configuração.
-- Toda a chamada a modelos deve passar por `chamarModelo()`.
-- Fazer timeout de 30 segundos e tratar limites e erros conforme os requisitos.
-- Escrever testes Vitest para lógica crítica antes ou durante a implementação.
-- Não alterar requisitos fora das fases sem explicação.
-- Confirmar nomes de modelos e APIs oficiais, pois mudam com frequência.
-
-*** Add File: C:\Projects\CVClassifier\backend\.env.example
-# Chave da Groq
-# Obter uma chave no painel oficial da Groq e guardar aqui um valor local.
-GROQ_API_KEY=
-
-# Porta do servidor
-PORT=3001
+- Use strict TypeScript.
+- Validate external inputs and responses.
+- Never send API keys to the frontend.
+- Store keys only in `.env` files.
+- Never store or log resumes in the backend.
+- Never log keys, resumes, or advertisements.
+- Remove email addresses, phone numbers, and postal addresses from resumes before sending them to a model.
+- Use `null` for values absent from the source; never invent values.
+- Allow only providers and models defined in the central configuration.
+- Every model call must pass through `callModel()`.
+- Apply a 30-second timeout and handle rate limits and errors according to the requirements.
+- Write Vitest tests for critical logic before or during implementation.
+- Do not change requirements outside the planned phases without explanation.
+- Confirm official model names and APIs, as they change frequently.
+- Use English for code, files, identifiers, UI text, comments, documentation, logs, and commits.

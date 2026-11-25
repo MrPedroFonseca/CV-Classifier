@@ -1,34 +1,34 @@
-# Analisador de Anúncios de Emprego com IA
+# Job Advertisement Analyzer with AI
 
-Projeto full-stack para analisar anúncios de emprego, comparar requisitos com um currículo e avaliar o encaixe com preferências de trabalho.
+Full-stack project for analyzing job advertisements, comparing requirements with a resume, and evaluating fit with work preferences.
 
-## Estado atual
+## Current Status
 
-Preparação inicial concluída. Backend e frontend estão separados e os requisitos do projeto foram documentados.
+Initial preparation is complete. The backend and frontend are separated, and the project requirements are documented.
 
-## Estrutura
+## Structure
 
-- `backend/`: API em Node.js, Express e TypeScript
-- `frontend/`: interface em React e Vite
-- `docs/REQUISITOS.md`: requisitos, contrato da API e plano de desenvolvimento
-- `exemplos/`: anúncios e dados fictícios de avaliação
-- `.github/copilot-instructions.md`: regras de desenvolvimento do projeto
+- `backend/`: Node.js, Express, and TypeScript API
+- `frontend/`: React and Vite interface
+- `docs/REQUIREMENTS.md`: requirements, API contract, and development plan
+- `examples/`: fictional job advertisements and evaluation data
+- `.github/copilot-instructions.md`: project development rules
 
-## Stack planeada
+## Planned Stack
 
 - Node.js 20+
-- TypeScript estrito
-- Express e Zod
+- Strict TypeScript
+- Express and Zod
 - Vitest
-- React e Vite
-- Groq e/ou Gemini
+- React and Vite
+- Groq and/or Gemini
 
-## Preparação local
+## Local Setup
 
-1. Criar `backend/.env` a partir de `backend/.env.example`.
-2. Configurar uma chave pessoal de fornecedor; nunca guardar a chave no repositório.
-3. Não adicionar currículos reais ao repositório.
+1. Copy `backend/.env.example` to `backend/.env`.
+2. Configure a personal provider API key. Never commit the key to the repository.
+3. Never add real resumes to the repository.
 
-## Próxima fase
+## Next Phase
 
-Criar o backend mínimo com TypeScript e Express e um endpoint `POST /analisar` que chame o modelo configurado no Groq.
+Create the minimum backend with TypeScript and Express, plus a `POST /analyze` endpoint that calls the configured Groq model.
