@@ -9,6 +9,7 @@ import {
   vi
 } from "vitest";
 import { createApp } from "../src/app.js";
+import { ModelRequestError } from "../src/errors/model-request-error.js";
 import { callModel } from "../src/services/model.js";
 import {
   getConfiguredProviders,
@@ -310,6 +311,45 @@ describe("POST /analyze", () => {
     }
   });
 
+  // Ensures contact details are removed from the resume included in the prompt.
+  it("removes resume contact details before calling the model", async () => {
+    const validResult = {
+      title: "Developer",
+      experienceYears: null,
+      technologies: [],
+      workModel: null,
+      salary: null,
+      compatibility: 5,
+      gaps: [],
+      preferences: {
+        workModel: "unknown",
+        location: "unknown"
+      }
+    };
+    const modelCaller = vi.fn(async () => ({
+      text: JSON.stringify(validResult),
+      tokens: 10,
+      timeMs: 100
+    }));
+    const app = createApp(modelCaller);
+
+    const response = await request(app).post("/analyze").send({
+      advertisement: "Developer",
+      resume:
+        "Engineer\nsam@example.com\n+1 (555) 123-4567\n123 Main Street"
+    });
+
+    expect(response.status).toBe(200);
+    expect(modelCaller).toHaveBeenCalledOnce();
+    const prompt = modelCaller.mock.calls[0]?.[0];
+    expect(prompt).toBeDefined();
+    expect(prompt).toContain("[email removed]");
+    expect(prompt).toContain("[phone removed]");
+    expect(prompt).toContain("[address removed]");
+    expect(prompt).not.toContain("sam@example.com");
+    expect(prompt).not.toContain("123 Main Street");
+  });
+
   // Confirms that invalid model JSON triggers exactly one additional model call.
   it("retries once for invalid model JSON", async () => {
     const callModel = vi
@@ -327,7 +367,7 @@ describe("POST /analyze", () => {
     expect(callModel).toHaveBeenCalledTimes(2);
   });
 
-  // Checks that detectable resume contact details are removed before model use.
+  // Rejects a missing resume before it can reach the model.
   it("rejects missing resume input", async () => {
     const callModel = vi.fn(async () => ({
       text: "{}",
@@ -343,6 +383,28 @@ describe("POST /analyze", () => {
     expect(response.status).toBe(400);
     expect(callModel).not.toHaveBeenCalled();
   });
+
+  // Preserves provider timeout and rate-limit statuses at the API boundary.
+  it.each([
+    { statusCode: 429, message: "Groq rate limit exceeded" },
+    { statusCode: 504, message: "Model request timed out" }
+  ])(
+    "returns HTTP $statusCode for a model request failure",
+    async ({ statusCode, message }) => {
+      const modelCaller = vi.fn(async () => {
+        throw new ModelRequestError(statusCode, message);
+      });
+      const app = createApp(modelCaller);
+
+      const response = await request(app).post("/analyze").send({
+        advertisement: "Build APIs",
+        resume: "TypeScript developer"
+      });
+
+      expect(response.status).toBe(statusCode);
+      expect(response.body).toEqual({ error: message });
+    }
+  );
 });
 
 describe("callModel", () => {
