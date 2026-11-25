@@ -1,0 +1,14 @@
+const emailPattern = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;
+const phonePattern = /(?<!\d)(?:\+?\d[\d\s().-]{7,}\d)(?!\d)/g;
+const addressPattern =
+  /\b\d{1,5}\s+[A-Za-z0-9 .'-]{3,}\s+(Street|St|Avenue|Ave|Road|Rd|Rua|R\.|Avenida|Praca|Praça)\b/gi;
+
+// Removes the same detectable contact details as the backend before showing the resume for review.
+export function removeResumeContactDetails(text: string): string {
+  return text
+    .replace(emailPattern, "[email removed]")
+    .replace(phonePattern, "[phone removed]")
+    .replace(addressPattern, "[address removed]")
+    .replace(/[ \t]+\n/g, "\n")
+    .trim();
+}

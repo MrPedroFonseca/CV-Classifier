@@ -175,6 +175,38 @@ describe("POST /analyze", () => {
     expect(response.status).toBe(400);
   });
 
+  // Ensures the JSON parser accepts the maximum advertisement and resume together.
+  it("accepts the documented maximum sizes for both text fields", async () => {
+    const validResult = {
+      title: "Developer",
+      experienceYears: null,
+      technologies: [],
+      workModel: null,
+      salary: null,
+      compatibility: 5,
+      gaps: [],
+      preferences: {
+        workModel: "unknown",
+        location: "unknown"
+      }
+    };
+    const callModel = vi.fn(async () => ({
+      text: JSON.stringify(validResult),
+      tokens: 10,
+      timeMs: 100
+    }));
+    const app = createApp(callModel);
+
+    const response = await request(app)
+      .post("/analyze")
+      .send({
+        advertisement: "a".repeat(15_000),
+        resume: "b".repeat(10_000)
+      });
+
+    expect(response.status).toBe(200);
+  });
+
   // Verifies the route and its successful response shape with a mocked model.
   it("returns the model response for valid input", async () => {
     const validResult = {

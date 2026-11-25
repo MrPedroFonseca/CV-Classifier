@@ -7,7 +7,7 @@ import { createModelsRouter } from "./routes/models.js";
 export function createApp(modelCaller: ModelCaller): Express {
   const app = express();
 
-  app.use(express.json({ limit: "16kb" }));
+  app.use(express.json({ limit: "128kb" }));
 
   // Checks whether the process is running and ready to receive requests.
   app.get("/health", (_request, response) => {

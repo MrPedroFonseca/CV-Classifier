@@ -4,7 +4,7 @@ Full-stack project for analyzing job advertisements, comparing requirements with
 
 ## Current Status
 
-Initial preparation is complete. The backend and frontend are separated, and the project requirements are documented.
+The backend and the first complete frontend flow are implemented. The frontend keeps the reviewed resume and work preferences in browser storage.
 
 ## Structure
 
@@ -71,6 +71,26 @@ npm run lint
 npm run build
 ```
 
+## Run the Frontend
+
+Start the backend in one terminal, then run the frontend in another:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+Open the Vite URL shown in the terminal. The development server proxies API requests to `http://localhost:3001`.
+
+Build and lint the frontend:
+
+```powershell
+cd frontend
+npm run build
+npm run lint
+```
+
 ## Next Phase
 
-Build the React frontend and use `GET /models` to let users select an available provider and model.
+Evaluate analysis quality with fictional resumes and job advertisements, then refine the prompt and result presentation.
