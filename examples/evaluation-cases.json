@@ -219,7 +219,7 @@
       "checks": [
         {
           "field": "title",
-          "meaning": "Do not invent a job title; use a neutral indication that the advertisement is unclear."
+          "expected": "Unclear job advertisement"
         },
         {
           "field": "experienceYears",

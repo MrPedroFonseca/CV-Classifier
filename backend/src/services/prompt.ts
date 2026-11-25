@@ -29,6 +29,7 @@ Return only valid JSON and no markdown. Use this exact shape:
 }
 
 Rules:
+- Always return JSON matching the schema, even when the input is not a job advertisement.
 - Use null for missing advertisement values.
 - Never invent information.
 - Extract required experience only from the advertisement, never from the resume.
@@ -39,6 +40,7 @@ Rules:
 - Never list optional, preferred, nice-to-have, or bonus qualifications as gaps.
 - Mark preference fit unknown unless the advertisement states a conflict clearly.
 - Compare office days only when both advertisement and preferences provide the relevant location.
+- For unrelated or nonsensical text, use "Unclear job advertisement" as the title, null for unknown scalar fields, empty technologies and gaps, compatibility 0, and unknown for both preference fields.
 
 PREFERENCES:
 ${preferenceText}
