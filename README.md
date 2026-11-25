@@ -37,7 +37,7 @@ npm install
 npm run dev
 ```
 
-The server listens on `http://localhost:3001` by default. Configure `GROQ_API_KEY`, `GEMINI_API_KEY`, or both in `backend/.env`.
+The backend listens only on this computer at `http://127.0.0.1:3001`. Configure `GROQ_API_KEY`, `GEMINI_API_KEY`, or both in `backend/.env`.
 
 ## Backend Endpoints
 
@@ -59,7 +59,7 @@ $body = @{
   provider = "gemini"
   model = "gemini-3.6-flash"
 } | ConvertTo-Json -Depth 5
-Invoke-RestMethod -Method Post -Uri "http://localhost:3001/analyze" -ContentType "application/json" -Body $body
+Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:3001/analyze" -ContentType "application/json" -Body $body
 ```
 
 ## Backend Validation
@@ -81,7 +81,7 @@ npm install
 npm run dev
 ```
 
-Open the Vite URL shown in the terminal. The development server proxies API requests to `http://localhost:3001`.
+Open the Vite URL shown in the terminal. The development server proxies API requests to `http://127.0.0.1:3001`.
 
 Build and lint the frontend:
 

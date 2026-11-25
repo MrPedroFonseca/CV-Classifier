@@ -5,9 +5,9 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      "/analyze": "http://localhost:3001",
-      "/models": "http://localhost:3001",
-      "/resume": "http://localhost:3001"
+      "/analyze": "http://127.0.0.1:3001",
+      "/models": "http://127.0.0.1:3001",
+      "/resume": "http://127.0.0.1:3001"
     }
   }
 });
