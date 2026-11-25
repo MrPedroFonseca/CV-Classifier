@@ -87,6 +87,58 @@ describe("GET /health", () => {
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ status: "ok" });
   });
+
+  describe("GET /models", () => {
+    // Returns only providers with a configured API key.
+    it("returns configured Groq models", async () => {
+      const originalGeminiKey = process.env.GEMINI_API_KEY;
+      delete process.env.GEMINI_API_KEY;
+
+      const app = createApp(unusedModel);
+      const response = await request(app).get("/models");
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        providers: [
+          {
+            id: "groq",
+            models: ["openai/gpt-oss-120b"]
+          }
+        ]
+      });
+
+      if (originalGeminiKey === undefined) {
+        delete process.env.GEMINI_API_KEY;
+      } else {
+        process.env.GEMINI_API_KEY = originalGeminiKey;
+      }
+    });
+
+    // Uses an empty provider list when no API keys are configured.
+    it("returns an empty provider list", async () => {
+      const originalGroqKey = process.env.GROQ_API_KEY;
+      const originalGeminiKey = process.env.GEMINI_API_KEY;
+      delete process.env.GROQ_API_KEY;
+      delete process.env.GEMINI_API_KEY;
+
+      const app = createApp(unusedModel);
+      const response = await request(app).get("/models");
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ providers: [] });
+
+      if (originalGroqKey === undefined) {
+        delete process.env.GROQ_API_KEY;
+      } else {
+        process.env.GROQ_API_KEY = originalGroqKey;
+      }
+      if (originalGeminiKey === undefined) {
+        delete process.env.GEMINI_API_KEY;
+      } else {
+        process.env.GEMINI_API_KEY = originalGeminiKey;
+      }
+    });
+  });
 });
 
 describe("POST /analyze", () => {

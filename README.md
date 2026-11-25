@@ -42,6 +42,7 @@ The server listens on `http://localhost:3001` by default. Configure `GROQ_API_KE
 ## Backend Endpoints
 
 - `GET /health`: reports server health.
+- `GET /models`: returns providers and models with configured API keys.
 - `POST /analyze`: validates a resume and advertisement, calls Groq, and returns structured JSON.
 - `POST /resume/extract`: extracts PDF text and removes detectable contact details.
 
