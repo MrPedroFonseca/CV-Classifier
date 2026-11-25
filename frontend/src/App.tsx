@@ -45,6 +45,8 @@ function App() {
   const [analyzing, setAnalyzing] = useState(false);
   const [copyLabel, setCopyLabel] = useState("Copy JSON");
   const fileInput = useRef<HTMLInputElement>(null);
+  const remoteOnly =
+    preferences.models.length === 1 && preferences.models[0] === "remote";
 
   // Loads configured models and cancels the request when the app unmounts.
   useEffect(() => {
@@ -307,9 +309,11 @@ function App() {
         resume,
         preferences: {
           models: preferences.models,
-          locations: preferences.locations.filter(
-            (location) => location.city.trim().length > 0
-          )
+          locations: remoteOnly
+            ? []
+            : preferences.locations.filter(
+                (location) => location.city.trim().length > 0
+              )
         },
         provider,
         model
@@ -387,6 +391,7 @@ function App() {
         />
         <PreferencesStep
           preferences={preferences}
+          remoteOnly={remoteOnly}
           onWorkModelChange={handleWorkModelChange}
           onAddLocation={handleAddLocation}
           onLocationChange={handleLocationChange}

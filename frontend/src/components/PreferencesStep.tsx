@@ -4,6 +4,7 @@ import "./PreferencesStep.css";
 
 interface PreferencesStepProps {
   preferences: WorkPreferences;
+  remoteOnly: boolean;
   onWorkModelChange: (model: WorkModel, checked: boolean) => void;
   onAddLocation: () => void;
   onLocationChange: (
@@ -19,6 +20,7 @@ const WORK_MODELS: WorkModel[] = ["remote", "hybrid", "on-site"];
 // Collects optional work-model and location preferences.
 export function PreferencesStep({
   preferences,
+  remoteOnly,
   onWorkModelChange,
   onAddLocation,
   onLocationChange,
@@ -57,12 +59,20 @@ export function PreferencesStep({
           className="text-button add-location"
           type="button"
           onClick={onAddLocation}
+          disabled={remoteOnly}
         >
           + Add location
         </button>
       </div>
+      {remoteOnly && (
+        <p className="empty-hint">
+          Location limits are ignored while only remote work is accepted.
+        </p>
+      )}
       {preferences.locations.length === 0 ? (
-        <p className="empty-hint">No location limits added.</p>
+        !remoteOnly && (
+          <p className="empty-hint">No location limits added.</p>
+        )
       ) : (
         <div className="location-list">
           {/* Keeps each city's office-day preference editable and removable. */}
@@ -75,6 +85,7 @@ export function PreferencesStep({
                 id={`city-${index}`}
                 className="text-input city-input"
                 value={location.city}
+                disabled={remoteOnly}
                 onChange={(event) =>
                   onLocationChange(index, "city", event.target.value)
                 }
@@ -91,6 +102,7 @@ export function PreferencesStep({
                 max={5}
                 step={1}
                 value={location.maxDays}
+                disabled={remoteOnly}
                 onChange={(event) =>
                   onLocationChange(index, "maxDays", event.target.value)
                 }
