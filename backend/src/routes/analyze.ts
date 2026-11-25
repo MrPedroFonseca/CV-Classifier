@@ -5,6 +5,11 @@ import { resultSchema, type AnalysisResult } from "../schemas/result.js";
 import { buildPrompt } from "../services/prompt.js";
 import { removeResumeContactDetails } from "../services/privacy.js";
 import type { WorkPreferences } from "../types/preferences.js";
+import {
+  getProvider,
+  isProviderModelAllowed,
+  type ProviderId
+} from "../config/providers.js";
 
 const analyzeRequestSchema = z.object({
   advertisement: z
@@ -26,7 +31,9 @@ const analyzeRequestSchema = z.object({
   }).optional().default({
     models: [],
     locations: []
-  })
+  }),
+  provider: z.enum(["groq", "gemini"]).optional().default("groq"),
+  model: z.string().trim().min(1).optional()
 });
 
 export interface ModelResponse {
@@ -35,7 +42,11 @@ export interface ModelResponse {
   timeMs: number;
 }
 
-export type ModelCaller = (prompt: string) => Promise<ModelResponse>;
+export type ModelCaller = (
+  prompt: string,
+  provider: ProviderId,
+  model: string
+) => Promise<ModelResponse>;
 
 // Parses model JSON after an optional second attempt and returns the API result.
 export function parseModelResult(text: string): AnalysisResult {
@@ -62,6 +73,31 @@ export function createAnalyzeRouter(modelCaller: ModelCaller): Router {
       return;
     }
 
+    const provider = parsed.data.provider;
+    const providerConfig = getProvider(provider);
+    const model = parsed.data.model ?? providerConfig?.models[0];
+
+    if (!model) {
+      response.status(400).json({
+        error: "The selected provider has no allowed model"
+      });
+      return;
+    }
+
+    if (!isProviderModelAllowed(provider, model)) {
+      response.status(400).json({
+        error: "The selected provider and model combination is not allowed"
+      });
+      return;
+    }
+
+    if (!providerConfig || !process.env[providerConfig.apiKeyEnvironmentName]) {
+      response.status(400).json({
+        error: `The ${providerConfig?.name ?? provider} API key is not configured`
+      });
+      return;
+    }
+
     try {
       const resume = removeResumeContactDetails(parsed.data.resume);
       const preferences: WorkPreferences = {
@@ -74,13 +110,13 @@ export function createAnalyzeRouter(modelCaller: ModelCaller): Router {
         preferences
       );
 
-      let modelResponse = await modelCaller(prompt);
+      let modelResponse = await modelCaller(prompt, provider, model);
       let result: AnalysisResult;
       try {
         result = parseModelResult(modelResponse.text);
       } catch {
         // Invalid model JSON gets exactly one retry.
-        modelResponse = await modelCaller(prompt);
+        modelResponse = await modelCaller(prompt, provider, model);
         result = parseModelResult(modelResponse.text);
       }
 

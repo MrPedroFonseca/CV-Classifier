@@ -1,7 +1,10 @@
 import { ModelRequestError } from "../errors/model-request-error.js";
+import {
+  getProvider,
+  isProviderModelAllowed,
+  type ProviderId
+} from "../config/providers.js";
 
-const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
-const DEFAULT_MODEL = "openai/gpt-oss-120b";
 const REQUEST_TIMEOUT_MS = 30_000;
 
 interface GroqChatResponse {
@@ -26,12 +29,30 @@ async function wait(delayMs: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, delayMs));
 }
 
-// Sends a prompt to Groq with timeout handling and retries for transient failures.
-export async function callModel(prompt: string): Promise<ModelResponse> {
-  const apiKey = process.env.GROQ_API_KEY;
+// Sends a prompt to one configured provider with timeout handling and retries.
+export async function callModel(
+  prompt: string,
+  providerId: ProviderId,
+  model: string
+): Promise<ModelResponse> {
+  if (!isProviderModelAllowed(providerId, model)) {
+    throw new ModelRequestError(
+      400,
+      "The selected provider and model combination is not allowed"
+    );
+  }
 
+  const provider = getProvider(providerId);
+  if (!provider) {
+    throw new ModelRequestError(400, "The selected provider is not allowed");
+  }
+
+  const apiKey = process.env[provider.apiKeyEnvironmentName];
   if (!apiKey) {
-    throw new ModelRequestError(500, "GROQ_API_KEY is not configured");
+    throw new ModelRequestError(
+      400,
+      `${provider.name} API key is not configured`
+    );
   }
 
   for (let attempt = 0; attempt <= 2; attempt += 1) {
@@ -40,14 +61,14 @@ export async function callModel(prompt: string): Promise<ModelResponse> {
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
     try {
-    const response = await fetch(GROQ_API_URL, {
+    const response = await fetch(provider.apiUrl, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: DEFAULT_MODEL,
+        model,
         temperature: 0.1,
         messages: [{ role: "user", content: prompt }]
       }),

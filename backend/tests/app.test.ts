@@ -1,5 +1,5 @@
 import request from "supertest";
-import { describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { createApp } from "../src/app.js";
 import {
   getConfiguredProviders,
@@ -7,10 +7,31 @@ import {
   isProviderModelAllowed
 } from "../src/config/providers.js";
 
-const unusedModel = async () => ({
+const unusedModel = async (
+  prompt: string,
+  provider: "groq" | "gemini",
+  model: string
+) => ({
   text: "unused",
   tokens: 0,
-  timeMs: 0
+  timeMs: 0,
+  prompt,
+  provider,
+  model
+});
+
+const originalGroqKey = process.env.GROQ_API_KEY;
+
+beforeAll(() => {
+  process.env.GROQ_API_KEY = "test-groq-key";
+});
+
+afterAll(() => {
+  if (originalGroqKey === undefined) {
+    delete process.env.GROQ_API_KEY;
+  } else {
+    process.env.GROQ_API_KEY = originalGroqKey;
+  }
 });
 
 describe("provider configuration", () => {
@@ -122,6 +143,27 @@ describe("POST /analyze", () => {
     expect(response.body.title).toBe("TypeScript Developer");
     expect(response.body.meta).toEqual({ timeMs: 300, tokens: 25 });
     expect(callModel).toHaveBeenCalledOnce();
+    expect(callModel).toHaveBeenCalledWith(
+      expect.any(String),
+      "groq",
+      "openai/gpt-oss-120b"
+    );
+  });
+
+  // Rejects provider/model pairs outside the central allowlist.
+  it("rejects an invalid provider and model combination", async () => {
+    const callModel = vi.fn(unusedModel);
+    const app = createApp(callModel);
+
+    const response = await request(app).post("/analyze").send({
+      advertisement: "Build APIs",
+      resume: "TypeScript developer",
+      provider: "groq",
+      model: "gemini-2.5-flash"
+    });
+
+    expect(response.status).toBe(400);
+    expect(callModel).not.toHaveBeenCalled();
   });
 
   // Confirms that invalid model JSON triggers exactly one additional model call.
