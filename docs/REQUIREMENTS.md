@@ -42,7 +42,7 @@ Secondary objectives:
 - **FR10:** For PDF input, the backend extracts text through `POST /resume/extract`. PDFs without extractable text return a clear error and recommend pasted text.
 - **FR11:** Before sending the resume to the model, remove any detectable email address, phone number, and postal address. Show the exact resulting text for review and editing.
 - **FR12:** Store the resume only in browser storage and send it with each analysis. The backend must not persist or log it. The user may replace or delete it.
-- **FR13:** The user defines accepted work models and locations, with a maximum number of office days per week for each location from 2 to 5. Store preferences with the resume in browser storage. With no preferences, any work model and location is acceptable.
+- **FR13:** The user defines accepted work models and locations, with a maximum number of office days per week for each location from 1 to 5. Store preferences with the resume in browser storage. With no preferences, any work model and location is acceptable.
 - **FR14:** The user selects a provider and model. `GET /models` returns only providers whose API keys are configured.
 - **FR15:** Show response time and token usage for each analysis.
 - **FR16:** Provide a button that copies the JSON result.
@@ -127,7 +127,7 @@ Request:
 }
 ```
 
-`maxDays` must be an integer from 2 to 5.
+`maxDays` must be an integer from 1 to 5.
 
 Success response:
 

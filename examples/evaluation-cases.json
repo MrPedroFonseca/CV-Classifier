@@ -53,7 +53,7 @@
         "locations": [
           {
             "city": "Lisbon",
-            "maxDays": 2
+            "maxDays": 1
           }
         ]
       },
@@ -77,7 +77,7 @@
         {
           "field": "preferences.location",
           "expected": "incompatible",
-          "reason": "The advertisement requires 3 office days in Lisbon; the preference allows 2."
+          "reason": "The advertisement requires 3 office days in Lisbon; the preference allows 1."
         },
         {
           "field": "gaps",
@@ -96,7 +96,7 @@
         "locations": [
           {
             "city": "Porto",
-            "maxDays": 2
+            "maxDays": 1
           }
         ]
       },
@@ -139,7 +139,7 @@
         "locations": [
           {
             "city": "Madrid",
-            "maxDays": 2
+            "maxDays": 1
           }
         ]
       },

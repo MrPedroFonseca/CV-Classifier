@@ -54,7 +54,7 @@ $body = @{
   resume = "TypeScript and React developer."
   preferences = @{
     models = @("remote", "hybrid")
-    locations = @(@{ city = "Coimbra"; maxDays = 2 })
+    locations = @(@{ city = "Coimbra"; maxDays = 1 })
   }
   provider = "gemini"
   model = "gemini-3.6-flash"

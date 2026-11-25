@@ -87,7 +87,7 @@ export function PreferencesStep({
                 id={`days-${index}`}
                 className="text-input days-input"
                 type="number"
-                min={2}
+                min={1}
                 max={5}
                 step={1}
                 value={location.maxDays}

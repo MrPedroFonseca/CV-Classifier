@@ -196,7 +196,7 @@ function App() {
   function handleAddLocation(): void {
     updatePreferences({
       ...preferences,
-      locations: [...preferences.locations, { city: "", maxDays: 2 }]
+      locations: [...preferences.locations, { city: "", maxDays: 1 }]
     });
   }
 
@@ -216,7 +216,7 @@ function App() {
           ? { ...location, city: value }
           : {
               ...location,
-              maxDays: Math.max(2, Math.min(5, Math.round(Number(value) || 2)))
+              maxDays: Math.max(1, Math.min(5, Math.round(Number(value) || 1)))
             };
       })
     });

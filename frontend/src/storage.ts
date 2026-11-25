@@ -26,11 +26,11 @@ function isStoredLocation(value: unknown): value is WorkLocation {
   );
 }
 
-// Clamps older saved office-day values to the current 2-to-5 day range.
+// Clamps older saved office-day values to the current 1-to-5 day range.
 function normalizeSavedLocations(locations: WorkLocation[]): WorkLocation[] {
   return locations.map((location) => ({
     ...location,
-    maxDays: Math.max(2, Math.min(5, Math.round(location.maxDays)))
+    maxDays: Math.max(1, Math.min(5, Math.round(location.maxDays)))
   }));
 }
 

@@ -178,8 +178,8 @@ describe("POST /analyze", () => {
 
   // Enforces the supported office-day range at both boundaries.
   it.each([
-    { maxDays: 1, expectedStatus: 400 },
-    { maxDays: 2, expectedStatus: 200 },
+    { maxDays: 0, expectedStatus: 400 },
+    { maxDays: 1, expectedStatus: 200 },
     { maxDays: 5, expectedStatus: 200 },
     { maxDays: 6, expectedStatus: 400 }
   ])(
