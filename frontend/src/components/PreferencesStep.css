@@ -58,13 +58,15 @@
   gap: 7px;
 }
 
-.city-input {
+.location-row .city-input {
+  width: 0;
   min-width: 0;
   flex: 1;
 }
 
-.days-input {
-  width: 55px;
+.location-row .days-input {
+  width: 48px;
+  flex: 0 0 48px;
   padding: 9px 5px;
   text-align: center;
 }

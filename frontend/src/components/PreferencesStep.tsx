@@ -87,8 +87,9 @@ export function PreferencesStep({
                 id={`days-${index}`}
                 className="text-input days-input"
                 type="number"
-                min={0}
-                max={7}
+                min={2}
+                max={5}
+                step={1}
                 value={location.maxDays}
                 onChange={(event) =>
                   onLocationChange(index, "maxDays", event.target.value)

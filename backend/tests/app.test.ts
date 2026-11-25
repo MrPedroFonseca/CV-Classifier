@@ -176,6 +176,55 @@ describe("POST /analyze", () => {
     expect(response.status).toBe(400);
   });
 
+  // Enforces the supported office-day range at both boundaries.
+  it.each([
+    { maxDays: 1, expectedStatus: 400 },
+    { maxDays: 2, expectedStatus: 200 },
+    { maxDays: 5, expectedStatus: 200 },
+    { maxDays: 6, expectedStatus: 400 }
+  ])(
+    "validates the office-day limit $maxDays",
+    async ({ maxDays, expectedStatus }) => {
+      const validResult = {
+        title: "Developer",
+        experienceYears: null,
+        technologies: [],
+        workModel: null,
+        salary: null,
+        compatibility: 5,
+        gaps: [],
+        preferences: {
+          workModel: "unknown",
+          location: "unknown"
+        }
+      };
+      const callModel = vi.fn(async () => ({
+        text: JSON.stringify(validResult),
+        tokens: 10,
+        timeMs: 100
+      }));
+      const app = createApp(callModel);
+
+      const response = await request(app)
+        .post("/analyze")
+        .send({
+          advertisement: "Developer",
+          resume: "Developer",
+          preferences: {
+            models: [],
+            locations: [{ city: "Lisbon", maxDays }]
+          }
+        });
+
+      expect(response.status).toBe(expectedStatus);
+      if (expectedStatus === 400) {
+        expect(callModel).not.toHaveBeenCalled();
+      } else {
+        expect(callModel).toHaveBeenCalledOnce();
+      }
+    }
+  );
+
   // Ensures the JSON parser accepts the maximum advertisement and resume together.
   it("accepts the documented maximum sizes for both text fields", async () => {
     const validResult = {

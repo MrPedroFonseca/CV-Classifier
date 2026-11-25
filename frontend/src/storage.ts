@@ -1,4 +1,4 @@
-import type { WorkPreferences } from "./types";
+import type { WorkLocation, WorkPreferences } from "./types";
 
 const STORAGE_KEY = "job-analyzer-settings";
 
@@ -12,6 +12,27 @@ const emptyPreferences: WorkPreferences = {
   models: [],
   locations: []
 };
+
+// Checks that saved location data can be safely restored.
+function isStoredLocation(value: unknown): value is WorkLocation {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "city" in value &&
+    typeof value.city === "string" &&
+    "maxDays" in value &&
+    typeof value.maxDays === "number" &&
+    Number.isFinite(value.maxDays)
+  );
+}
+
+// Clamps older saved office-day values to the current 2-to-5 day range.
+function normalizeSavedLocations(locations: WorkLocation[]): WorkLocation[] {
+  return locations.map((location) => ({
+    ...location,
+    maxDays: Math.max(2, Math.min(5, Math.round(location.maxDays)))
+  }));
+}
 
 // Restores the reviewed resume and work preferences from this browser only.
 export function readSavedSettings(): SavedSettings {
@@ -46,15 +67,7 @@ export function readSavedSettings(): SavedSettings {
           model === "remote" || model === "hybrid" || model === "on-site"
       ) ||
       !Array.isArray(locations) ||
-      !locations.every(
-        (location) =>
-          typeof location === "object" &&
-          location !== null &&
-          "city" in location &&
-          typeof location.city === "string" &&
-          "maxDays" in location &&
-          typeof location.maxDays === "number"
-      )
+      !locations.every(isStoredLocation)
     ) {
       throw new Error("Saved preferences have an unexpected format");
     }
@@ -63,7 +76,7 @@ export function readSavedSettings(): SavedSettings {
       resume: record.resume,
       preferences: {
         models,
-        locations
+        locations: normalizeSavedLocations(locations)
       },
       warning: ""
     };

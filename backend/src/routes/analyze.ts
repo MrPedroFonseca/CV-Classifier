@@ -26,7 +26,7 @@ const analyzeRequestSchema = z.object({
     models: z.array(z.enum(["remote", "hybrid", "on-site"])).optional().default([]),
     locations: z.array(z.object({
       city: z.string().trim().min(1),
-      maxDays: z.number().int().min(0).max(7)
+      maxDays: z.number().int().min(2).max(5)
     })).optional().default([])
   }).optional().default({
     models: [],
