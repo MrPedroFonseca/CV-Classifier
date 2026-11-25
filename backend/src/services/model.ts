@@ -10,20 +10,36 @@ interface GroqChatResponse {
       content?: string;
     };
   }>;
+  usage?: {
+    total_tokens?: number;
+  };
 }
 
-// Sends a prompt to Groq through its OpenAI-compatible API and returns the text result.
-export async function callModel(prompt: string): Promise<string> {
+export interface ModelResponse {
+  text: string;
+  tokens: number;
+  timeMs: number;
+}
+
+// Waits briefly before retrying transient provider limits or server failures.
+async function wait(delayMs: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, delayMs));
+}
+
+// Sends a prompt to Groq with timeout handling and retries for transient failures.
+export async function callModel(prompt: string): Promise<ModelResponse> {
   const apiKey = process.env.GROQ_API_KEY;
 
   if (!apiKey) {
     throw new ModelRequestError(500, "GROQ_API_KEY is not configured");
   }
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  for (let attempt = 0; attempt <= 2; attempt += 1) {
+    const startedAt = Date.now();
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-  try {
+    try {
     const response = await fetch(GROQ_API_URL, {
       method: "POST",
       headers: {
@@ -39,7 +55,22 @@ export async function callModel(prompt: string): Promise<string> {
     });
 
     if (response.status === 429) {
+      if (attempt < 2) {
+        await wait(500 * 2 ** attempt);
+        continue;
+      }
       throw new ModelRequestError(429, "Groq rate limit exceeded");
+    }
+
+    if (response.status >= 500) {
+      if (attempt < 2) {
+        await wait(500 * 2 ** attempt);
+        continue;
+      }
+      throw new ModelRequestError(
+        502,
+        `Groq request failed with status ${response.status}`
+      );
     }
 
     if (!response.ok) {
@@ -56,18 +87,25 @@ export async function callModel(prompt: string): Promise<string> {
       throw new ModelRequestError(502, "Groq returned an empty response");
     }
 
-    return content;
-  } catch (error) {
-    if (error instanceof ModelRequestError) {
-      throw error;
-    }
+      return {
+        text: content,
+        tokens: payload.usage?.total_tokens ?? 0,
+        timeMs: Date.now() - startedAt
+      };
+    } catch (error) {
+      if (error instanceof ModelRequestError) {
+        throw error;
+      }
 
-    if (error instanceof Error && error.name === "AbortError") {
-      throw new ModelRequestError(504, "Model request timed out");
-    }
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new ModelRequestError(504, "Model request timed out");
+      }
 
-    throw new ModelRequestError(502, "Unable to reach the model provider");
-  } finally {
-    clearTimeout(timeout);
+      throw new ModelRequestError(502, "Unable to reach the model provider");
+    } finally {
+      clearTimeout(timeout);
+    }
   }
+
+  throw new ModelRequestError(502, "Unable to reach the model provider");
 }

@@ -1,5 +1,6 @@
 import express, { type Express } from "express";
 import { createAnalyzeRouter, type ModelCaller } from "./routes/analyze.js";
+import { createResumeRouter } from "./routes/resume.js";
 
 // Creates the HTTP application and wires routes without starting the server.
 export function createApp(modelCaller: ModelCaller): Express {
@@ -13,6 +14,7 @@ export function createApp(modelCaller: ModelCaller): Express {
   });
 
   app.use("/analyze", createAnalyzeRouter(modelCaller));
+  app.use("/resume", createResumeRouter());
 
   return app;
 }

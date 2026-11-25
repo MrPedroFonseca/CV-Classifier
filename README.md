@@ -42,12 +42,20 @@ The server listens on `http://localhost:3001` by default. Configure `GROQ_API_KE
 ## Backend Endpoints
 
 - `GET /health`: reports server health.
-- `POST /analyze`: validates an advertisement and calls the configured Groq model.
+- `POST /analyze`: validates a resume and advertisement, calls Groq, and returns structured JSON.
+- `POST /resume/extract`: extracts PDF text and removes detectable contact details.
 
 Example:
 
 ```powershell
-$body = @{ advertisement = "We are hiring a TypeScript developer." } | ConvertTo-Json
+$body = @{
+  advertisement = "We are hiring a TypeScript and React developer."
+  resume = "TypeScript and React developer."
+  preferences = @{
+    models = @("remote", "hybrid")
+    locations = @(@{ city = "Coimbra"; maxDays = 1 })
+  }
+} | ConvertTo-Json -Depth 5
 Invoke-RestMethod -Method Post -Uri "http://localhost:3001/analyze" -ContentType "application/json" -Body $body
 ```
 
