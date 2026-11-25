@@ -1,0 +1,130 @@
+.analysis-panel {
+  margin-top: 16px;
+}
+
+.advertisement-input {
+  min-height: 145px;
+}
+
+.form-footer {
+  margin-top: 11px;
+}
+
+.model-controls {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.select-shell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.select-shell::after {
+  position: absolute;
+  right: 13px;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid #66728a;
+  border-bottom: 1.5px solid #66728a;
+  content: "";
+  pointer-events: none;
+  transform: translateY(-2px) rotate(45deg);
+}
+
+.select-input {
+  min-width: 142px;
+  min-height: 42px;
+  padding: 0 34px 0 13px;
+  appearance: none;
+  border: 1px solid #dfe4ee;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fff 0%, #f8f9fc 100%);
+  box-shadow: 0 2px 6px rgb(28 43 75 / 5%);
+  color: #303b52;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 650;
+  outline: none;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.select-input:hover:not(:disabled) {
+  border-color: #becaf3;
+  background: var(--accent-soft);
+}
+
+.select-input:focus {
+  border-color: var(--accent);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgb(55 90 225 / 12%);
+}
+
+.select-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.button-primary {
+  min-height: 42px;
+  padding: 0 16px;
+  background: var(--accent);
+  color: white;
+}
+
+.inline-hint {
+  margin: 11px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.spinner {
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgb(255 255 255 / 45%);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 760px) {
+  .form-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .model-controls {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .select-shell {
+    flex: 1 1 120px;
+  }
+
+  .select-input {
+    width: 100%;
+  }
+
+  .button-primary {
+    flex: 1 1 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-footer {
+    gap: 13px;
+  }
+}

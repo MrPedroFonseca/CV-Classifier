@@ -5,10 +5,14 @@ import {
   extractResume,
   getAvailableModels
 } from "./api";
+import { AnalysisResult } from "./components/AnalysisResult";
+import { AnalyzeStep } from "./components/AnalyzeStep";
+import { PreferencesStep } from "./components/PreferencesStep";
+import { ResumeStep } from "./components/ResumeStep";
 import { removeResumeContactDetails } from "./privacy";
 import { readSavedSettings, saveSettings } from "./storage";
 import type {
-  AnalysisResult,
+  AnalysisResult as AnalysisResultData,
   ProviderId,
   ProviderOption,
   WorkLocation,
@@ -17,11 +21,11 @@ import type {
 } from "./types";
 import "./App.css";
 
-const WORK_MODELS: WorkModel[] = ["remote", "hybrid", "on-site"];
 const MAX_ADVERTISEMENT_LENGTH = 15_000;
 const MAX_RESUME_LENGTH = 10_000;
 const MAX_PDF_SIZE = 2 * 1024 * 1024;
-// Renders the job analyzer and keeps personal settings in browser storage.
+
+// Coordinates resume setup, preferences, model selection, and job analysis.
 function App() {
   const [initialSettings] = useState(readSavedSettings);
   const [resumeSource, setResumeSource] = useState("");
@@ -33,7 +37,7 @@ function App() {
   const [providers, setProviders] = useState<ProviderOption[]>([]);
   const [provider, setProvider] = useState<ProviderId | "">("");
   const [model, setModel] = useState("");
-  const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [result, setResult] = useState<AnalysisResultData | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState(initialSettings.warning);
   const [loadingModels, setLoadingModels] = useState(true);
@@ -42,7 +46,7 @@ function App() {
   const [copyLabel, setCopyLabel] = useState("Copy JSON");
   const fileInput = useRef<HTMLInputElement>(null);
 
-  // Loads currently configured providers and cancels the request when the page unmounts.
+  // Loads configured models and cancels the request when the app unmounts.
   useEffect(() => {
     const controller = new AbortController();
 
@@ -77,7 +81,7 @@ function App() {
     return () => controller.abort();
   }, []);
 
-  // Saves updated settings locally and reports browser storage failures.
+  // Saves the reviewed resume and preferences locally and reports storage errors.
   function persistSettings(
     nextResume: string,
     nextPreferences: WorkPreferences
@@ -89,19 +93,19 @@ function App() {
     }
   }
 
-  // Updates the reviewed resume in both React state and browser storage.
+  // Updates reviewed resume state and browser storage together.
   function updateResume(nextResume: string): void {
     setResume(nextResume);
     persistSettings(nextResume, preferences);
   }
 
-  // Updates preferences in both React state and browser storage.
+  // Updates work preferences and browser storage together.
   function updatePreferences(nextPreferences: WorkPreferences): void {
     setPreferences(nextPreferences);
     persistSettings(resume, nextPreferences);
   }
 
-  // Prepares pasted resume text by removing detectable contact details for review.
+  // Removes contact details from pasted resume text before the user reviews it.
   function handlePrepareResume(): void {
     const cleanedResume = removeResumeContactDetails(resumeSource);
     if (!cleanedResume) {
@@ -113,21 +117,21 @@ function App() {
     setNotice("Review and edit the exact resume text that will be sent.");
   }
 
-  // Updates the source text before contact removal and review.
+  // Updates the unprocessed resume text pasted by the user.
   function handleResumeSourceChange(
     event: ChangeEvent<HTMLTextAreaElement>
   ): void {
     setResumeSource(event.target.value);
   }
 
-  // Saves edits made to the exact resume text that will be sent.
+  // Saves edits to the exact resume text that will be sent for analysis.
   function handleReviewedResumeChange(
     event: ChangeEvent<HTMLTextAreaElement>
   ): void {
     updateResume(event.target.value);
   }
 
-  // Extracts a selected PDF and places the cleaned text in the review field.
+  // Extracts PDF text and places the cleaned result in the review field.
   async function handlePdfUpload(
     event: ChangeEvent<HTMLInputElement>
   ): Promise<void> {
@@ -167,7 +171,7 @@ function App() {
     }
   }
 
-  // Clears the saved resume so it is removed from browser storage.
+  // Clears the resume from state and browser storage.
   function handleClearResume(): void {
     updateResume("");
     setResumeSource("");
@@ -175,7 +179,7 @@ function App() {
     setError("");
   }
 
-  // Updates one accepted work model in the user's preferences.
+  // Adds or removes one accepted work model.
   function handleWorkModelChange(
     selectedModel: WorkModel,
     checked: boolean
@@ -188,7 +192,7 @@ function App() {
     });
   }
 
-  // Adds an empty location preference for the user to configure.
+  // Adds a location row for the user to configure.
   function handleAddLocation(): void {
     updatePreferences({
       ...preferences,
@@ -196,7 +200,7 @@ function App() {
     });
   }
 
-  // Updates one city or office-day limit without changing other preferences.
+  // Updates a location name or its maximum office days per week.
   function handleLocationChange(
     index: number,
     field: keyof WorkLocation,
@@ -210,15 +214,15 @@ function App() {
         }
         return field === "city"
           ? { ...location, city: value }
-        : {
-            ...location,
-            maxDays: Math.max(0, Math.min(7, Number(value) || 0))
-          };
+          : {
+              ...location,
+              maxDays: Math.max(0, Math.min(7, Number(value) || 0))
+            };
       })
     });
   }
 
-  // Removes a location from the user's saved work preferences.
+  // Removes one location from the saved preferences.
   function handleRemoveLocation(index: number): void {
     updatePreferences({
       ...preferences,
@@ -228,12 +232,13 @@ function App() {
     });
   }
 
-  // Changes the selected provider and selects its first available model.
+  // Changes the provider and selects its first available model.
   function handleProviderChange(event: ChangeEvent<HTMLSelectElement>): void {
     const selectedValue = event.target.value;
     if (selectedValue !== "groq" && selectedValue !== "gemini") {
       return;
     }
+
     const selectedProvider: ProviderId = selectedValue;
     const providerOption = providers.find(
       (item) => item.id === selectedProvider
@@ -242,12 +247,24 @@ function App() {
     setModel(providerOption?.models[0] ?? "");
   }
 
-  // Opens the hidden PDF file input after the user selects the upload action.
+  // Updates the selected model for the current provider.
+  function handleModelChange(event: ChangeEvent<HTMLSelectElement>): void {
+    setModel(event.target.value);
+  }
+
+  // Opens the hidden PDF input when the upload button is selected.
   function handleChooseFile(): void {
     fileInput.current?.click();
   }
 
-  // Validates input and submits one analysis using the currently selected model.
+  // Updates the advertisement as the user edits its text.
+  function handleAdvertisementChange(
+    event: ChangeEvent<HTMLTextAreaElement>
+  ): void {
+    setAdvertisement(event.target.value);
+  }
+
+  // Validates input and submits the analysis request to the selected model.
   async function handleAnalyze(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     setError("");
@@ -310,7 +327,7 @@ function App() {
     }
   }
 
-  // Copies the validated result as formatted JSON to the clipboard.
+  // Copies the validated analysis as formatted JSON to the clipboard.
   async function handleCopyResult(): Promise<void> {
     if (!result) {
       return;
@@ -322,11 +339,6 @@ function App() {
     } catch {
       setError("Could not copy the result. Check clipboard permissions.");
     }
-  }
-
-  // Returns the selected provider's models for the model selector.
-  function getSelectedModels(): string[] {
-    return providers.find((item) => item.id === provider)?.models ?? [];
   }
 
   const canAnalyze =
@@ -361,260 +373,41 @@ function App() {
       </section>
 
       <div className="workspace">
-        <section className="panel resume-panel">
-          <div className="section-heading">
-            <span className="step-number">01</span>
-            <div>
-              <h2>Your resume</h2>
-              <p>Prepare it once. It stays in this browser.</p>
-            </div>
-          </div>
-
-          <label className="field-label" htmlFor="resume-source">
-            Paste resume text
-          </label>
-          <textarea
-            id="resume-source"
-            className="text-input resume-source"
-            value={resumeSource}
-            maxLength={MAX_RESUME_LENGTH}
-            onChange={handleResumeSourceChange}
-            placeholder="Paste your resume text here..."
-            rows={5}
-          />
-          <div className="resume-actions">
-            <button
-              className="button button-secondary"
-              type="button"
-              onClick={handlePrepareResume}
-            >
-              Remove contacts and review
-            </button>
-            <span className="character-count">
-              {resumeSource.length.toLocaleString()} / 10,000
-            </span>
-          </div>
-
-          <div className="upload-row">
-            <span className="or-divider">or</span>
-            <input
-              ref={fileInput}
-              className="visually-hidden"
-              type="file"
-              accept="application/pdf,.pdf"
-              onChange={handlePdfUpload}
-              aria-label="Upload resume PDF"
-            />
-            <button
-              className="button button-upload"
-              type="button"
-              onClick={handleChooseFile}
-              disabled={extractingResume}
-            >
-              {extractingResume ? "Extracting PDF..." : "Upload a PDF"}
-            </button>
-            <span className="upload-hint">PDF, up to 2 MB</span>
-          </div>
-
-          {resume && (
-            <div className="review-block">
-              <div className="review-heading">
-                <label className="field-label" htmlFor="resume-reviewed">
-                  Reviewed text sent for analysis
-                </label>
-                <button
-                  className="text-button"
-                  type="button"
-                  onClick={handleClearResume}
-                >
-                  Remove resume
-                </button>
-              </div>
-              <textarea
-                id="resume-reviewed"
-                className="text-input reviewed-resume"
-                value={resume}
-                maxLength={MAX_RESUME_LENGTH}
-                onChange={handleReviewedResumeChange}
-                rows={7}
-              />
-              <span className="character-count right-count">
-                {resume.length.toLocaleString()} / 10,000
-              </span>
-            </div>
-          )}
-        </section>
-
-        <section className="panel preferences-panel">
-          <div className="section-heading">
-            <span className="step-number">02</span>
-            <div>
-              <h2>Work preferences</h2>
-              <p>Optional. Leave empty to accept any arrangement.</p>
-            </div>
-          </div>
-
-          <fieldset className="preference-group">
-            <legend>Accepted work models</legend>
-            <div className="choice-row">
-              {WORK_MODELS.map((workModel) => (
-                <label className="check-choice" key={workModel}>
-                  <input
-                    type="checkbox"
-                    checked={preferences.models.includes(workModel)}
-                    onChange={(event) =>
-                      handleWorkModelChange(workModel, event.target.checked)
-                    }
-                  />
-                  <span>{workModel}</span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-
-          <div className="location-heading">
-            <span className="field-label">Preferred locations</span>
-            <button
-              className="text-button add-location"
-              type="button"
-              onClick={handleAddLocation}
-            >
-              + Add location
-            </button>
-          </div>
-          {preferences.locations.length === 0 ? (
-            <p className="empty-hint">No location limits added.</p>
-          ) : (
-            <div className="location-list">
-              {preferences.locations.map((location, index) => (
-                <div className="location-row" key={`location-${index}`}>
-                  <label className="visually-hidden" htmlFor={`city-${index}`}>
-                    City
-                  </label>
-                  <input
-                    id={`city-${index}`}
-                    className="text-input city-input"
-                    value={location.city}
-                    onChange={(event) =>
-                      handleLocationChange(index, "city", event.target.value)
-                    }
-                    placeholder="City"
-                  />
-                  <label
-                    className="visually-hidden"
-                    htmlFor={`days-${index}`}
-                  >
-                    Maximum office days per week
-                  </label>
-                  <input
-                    id={`days-${index}`}
-                    className="text-input days-input"
-                    type="number"
-                    min={0}
-                    max={7}
-                    value={location.maxDays}
-                    onChange={(event) =>
-                      handleLocationChange(index, "maxDays", event.target.value)
-                    }
-                  />
-                  <span className="days-label">days / week</span>
-                  <button
-                    className="remove-location"
-                    type="button"
-                    onClick={() => handleRemoveLocation(index)}
-                    aria-label={`Remove ${location.city || "location"}`}
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-          <p className="privacy-note">
-            Preferences are also stored only in this browser.
-          </p>
-        </section>
+        <ResumeStep
+          resumeSource={resumeSource}
+          resume={resume}
+          extractingResume={extractingResume}
+          fileInput={fileInput}
+          onResumeSourceChange={handleResumeSourceChange}
+          onPrepareResume={handlePrepareResume}
+          onPdfUpload={handlePdfUpload}
+          onChooseFile={handleChooseFile}
+          onClearResume={handleClearResume}
+          onReviewedResumeChange={handleReviewedResumeChange}
+        />
+        <PreferencesStep
+          preferences={preferences}
+          onWorkModelChange={handleWorkModelChange}
+          onAddLocation={handleAddLocation}
+          onLocationChange={handleLocationChange}
+          onRemoveLocation={handleRemoveLocation}
+        />
       </div>
 
-      <form className="panel analysis-panel" onSubmit={handleAnalyze}>
-        <div className="section-heading">
-          <span className="step-number">03</span>
-          <div>
-            <h2>Analyze a job</h2>
-            <p>Paste the full job description to get your match report.</p>
-          </div>
-        </div>
-
-        <label className="field-label" htmlFor="advertisement">
-          Job advertisement
-        </label>
-        <textarea
-          id="advertisement"
-          className="text-input advertisement-input"
-          value={advertisement}
-          maxLength={MAX_ADVERTISEMENT_LENGTH}
-          onChange={(event) => setAdvertisement(event.target.value)}
-          placeholder="Paste the job advertisement here..."
-          rows={8}
-        />
-        <div className="form-footer">
-          <span className="character-count">
-            {advertisement.length.toLocaleString()} / 15,000
-          </span>
-          <div className="model-controls">
-            <label>
-              <span className="visually-hidden">AI provider</span>
-              <select
-                className="select-input"
-                value={provider}
-                onChange={handleProviderChange}
-                disabled={loadingModels || providers.length === 0}
-              >
-                {providers.length === 0 && <option value="">No providers</option>}
-                {providers.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.id === "gemini" ? "Google Gemini" : "Groq"}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span className="visually-hidden">AI model</span>
-              <select
-                className="select-input"
-                value={model}
-                onChange={(event) => setModel(event.target.value)}
-                disabled={loadingModels || getSelectedModels().length === 0}
-              >
-                {getSelectedModels().map((availableModel) => (
-                  <option key={availableModel} value={availableModel}>
-                    {availableModel}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button
-              className="button button-primary"
-              type="submit"
-              disabled={!canAnalyze}
-            >
-              {analyzing ? (
-                <>
-                  <span className="spinner" />
-                  Analyzing...
-                </>
-              ) : (
-                <>Analyze job <span aria-hidden="true">→</span></>
-              )}
-            </button>
-          </div>
-        </div>
-        {!resume.trim() && (
-          <p className="inline-hint">
-            Prepare a resume above to enable job analysis.
-          </p>
-        )}
-      </form>
+      <AnalyzeStep
+        advertisement={advertisement}
+        provider={provider}
+        model={model}
+        providers={providers}
+        loadingModels={loadingModels}
+        analyzing={analyzing}
+        canAnalyze={canAnalyze}
+        hasResume={Boolean(resume.trim())}
+        onAdvertisementChange={handleAdvertisementChange}
+        onProviderChange={handleProviderChange}
+        onModelChange={handleModelChange}
+        onAnalyze={handleAnalyze}
+      />
 
       {(error || notice) && (
         <div
@@ -627,79 +420,11 @@ function App() {
       )}
 
       {result && (
-        <section className="panel result-panel" aria-live="polite">
-          <div className="result-header">
-            <div className="section-heading">
-              <span className="step-number result-step">✓</span>
-              <div>
-                <p className="eyebrow">ANALYSIS RESULT</p>
-                <h2>{result.title}</h2>
-              </div>
-            </div>
-            <button
-              className="button button-secondary copy-button"
-              type="button"
-              onClick={handleCopyResult}
-            >
-              {copyLabel}
-            </button>
-          </div>
-
-          <div className="score-and-facts">
-            <div className="score-card">
-              <span className="score-value">{result.compatibility}</span>
-              <span className="score-total">/ 10</span>
-              <span className="score-caption">Compatibility</span>
-            </div>
-            <div className="fact-grid">
-              <ResultFact label="Experience" value={result.experienceYears} />
-              <ResultFact label="Work model" value={result.workModel} />
-              <ResultFact label="Salary" value={result.salary} />
-              <ResultFact
-                label="Work preference"
-                value={result.preferences.workModel}
-              />
-              <ResultFact
-                label="Location preference"
-                value={result.preferences.location}
-              />
-            </div>
-          </div>
-
-          <div className="result-columns">
-            <div className="result-section">
-              <h3>Technologies</h3>
-              {result.technologies.length > 0 ? (
-                <div className="tag-list">
-                  {result.technologies.map((technology) => (
-                    <span className="tag" key={technology}>
-                      {technology}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <p className="muted-result">None identified</p>
-              )}
-            </div>
-            <div className="result-section">
-              <h3>Gaps to consider</h3>
-              {result.gaps.length > 0 ? (
-                <ul className="gap-list">
-                  {result.gaps.map((gap, index) => (
-                    <li key={`${gap}-${index}`}>{gap}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="muted-result">No gaps identified</p>
-              )}
-            </div>
-          </div>
-
-          <footer className="result-meta">
-            <span>Response time: {(result.meta.timeMs / 1000).toFixed(1)}s</span>
-            <span>{result.meta.tokens.toLocaleString()} tokens</span>
-          </footer>
-        </section>
+        <AnalysisResult
+          result={result}
+          copyLabel={copyLabel}
+          onCopyResult={handleCopyResult}
+        />
       )}
 
       <footer className="page-footer">
@@ -712,21 +437,6 @@ function App() {
         </span>
       </footer>
     </main>
-  );
-}
-
-interface ResultFactProps {
-  label: string;
-  value: string | null;
-}
-
-// Displays one labeled analysis field with an explicit unknown fallback.
-function ResultFact({ label, value }: ResultFactProps) {
-  return (
-    <div className="fact">
-      <span className="fact-label">{label}</span>
-      <span className="fact-value">{value || "Not specified"}</span>
-    </div>
   );
 }
 

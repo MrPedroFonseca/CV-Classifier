@@ -1,0 +1,97 @@
+.preference-group {
+  margin: 0 0 22px;
+  padding: 0;
+  border: 0;
+}
+
+.preference-group legend {
+  padding: 0;
+}
+
+.choice-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.check-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--ink);
+  font-size: 11px;
+  text-transform: capitalize;
+}
+
+.check-choice input {
+  accent-color: var(--accent);
+}
+
+.location-heading {
+  margin-bottom: 10px;
+}
+
+.location-heading .field-label {
+  margin: 0;
+}
+
+.empty-hint {
+  margin: 0;
+  padding: 13px 12px;
+  border: 1px dashed #dfe3eb;
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.location-list {
+  display: grid;
+  gap: 8px;
+}
+
+.location-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.city-input {
+  min-width: 0;
+  flex: 1;
+}
+
+.days-input {
+  width: 55px;
+  padding: 9px 5px;
+  text-align: center;
+}
+
+.days-label {
+  color: var(--muted);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.remove-location {
+  width: 27px;
+  height: 27px;
+  border: 0;
+  border-radius: 7px;
+  background: #f5f6f9;
+  color: #687184;
+  cursor: pointer;
+  font-size: 17px;
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.remove-location:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.privacy-note {
+  margin: 22px 0 0;
+}
