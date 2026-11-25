@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createApp } from "../src/app.js";
 
 describe("GET /health", () => {
+  // Checks the basic health response independently of model availability.
   it("reports that the server is healthy", async () => {
     const app = createApp(async () => "unused");
 
@@ -14,6 +15,7 @@ describe("GET /health", () => {
 });
 
 describe("POST /analyze", () => {
+  // Keeps missing input out of the model by checking validation before analysis.
   it("rejects a missing advertisement", async () => {
     const app = createApp(async () => "unused");
 
@@ -22,6 +24,7 @@ describe("POST /analyze", () => {
     expect(response.status).toBe(400);
   });
 
+  // Enforces the documented input limit before a request reaches the model.
   it("rejects an advertisement longer than 15,000 characters", async () => {
     const app = createApp(async () => "unused");
 
@@ -32,6 +35,7 @@ describe("POST /analyze", () => {
     expect(response.status).toBe(400);
   });
 
+  // Verifies the route and its successful response shape with a mocked model.
   it("returns the model response for valid input", async () => {
     const callModel = vi.fn(async () => "Model result");
     const app = createApp(callModel);

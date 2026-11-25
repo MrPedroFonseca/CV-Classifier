@@ -37,6 +37,10 @@ This project is an AI-powered job advertisement analyzer. It receives a job adve
 ## Mandatory Rules
 
 - Use strict TypeScript.
+- Keep It Simple: prefer small, direct, and readable functions over abstractions or clever implementations.
+- Put a brief comment before every function explaining what it does and why it is needed.
+- Add a few short comments inside a function only when a section is not obvious at a glance.
+- Do not add comments that merely restate simple code.
 - Validate external inputs and responses.
 - Never send API keys to the frontend.
 - Store keys only in `.env` files.

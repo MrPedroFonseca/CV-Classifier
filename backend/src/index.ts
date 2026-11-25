@@ -5,6 +5,7 @@ import { callModel } from "./services/model.js";
 const port = Number.parseInt(process.env.PORT ?? "3001", 10);
 const app = createApp(callModel);
 
+// Reports successful startup after the server begins listening.
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });

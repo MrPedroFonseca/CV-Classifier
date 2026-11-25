@@ -12,9 +12,11 @@ const analyzeRequestSchema = z.object({
 
 export type ModelCaller = (prompt: string) => Promise<string>;
 
+// Builds the analyze route so HTTP handling stays separate from model communication.
 export function createAnalyzeRouter(modelCaller: ModelCaller): Router {
   const router = Router();
 
+  // Validates the request, calls the model, and converts failures into HTTP responses.
   const analyze: RequestHandler = async (request, response) => {
     const parsed = analyzeRequestSchema.safeParse(request.body);
 

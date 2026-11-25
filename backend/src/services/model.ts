@@ -12,6 +12,7 @@ interface GroqChatResponse {
   }>;
 }
 
+// Sends a prompt to Groq through its OpenAI-compatible API and returns the text result.
 export async function callModel(prompt: string): Promise<string> {
   const apiKey = process.env.GROQ_API_KEY;
 
