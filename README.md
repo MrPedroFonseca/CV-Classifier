@@ -37,13 +37,13 @@ npm install
 npm run dev
 ```
 
-The server listens on `http://localhost:3001` by default. Configure `GROQ_API_KEY` in `backend/.env`.
+The server listens on `http://localhost:3001` by default. Configure `GROQ_API_KEY`, `GEMINI_API_KEY`, or both in `backend/.env`.
 
 ## Backend Endpoints
 
 - `GET /health`: reports server health.
 - `GET /models`: returns providers and models with configured API keys.
-- `POST /analyze`: validates a resume and advertisement, calls Groq, and returns structured JSON.
+- `POST /analyze`: validates a resume and advertisement, calls the selected model, and returns structured JSON.
 - `POST /resume/extract`: extracts PDF text and removes detectable contact details.
 
 Example:
@@ -56,6 +56,8 @@ $body = @{
     models = @("remote", "hybrid")
     locations = @(@{ city = "Coimbra"; maxDays = 1 })
   }
+  provider = "gemini"
+  model = "gemini-3.6-flash"
 } | ConvertTo-Json -Depth 5
 Invoke-RestMethod -Method Post -Uri "http://localhost:3001/analyze" -ContentType "application/json" -Body $body
 ```
@@ -71,4 +73,4 @@ npm run build
 
 ## Next Phase
 
-Add the Zod result schema, resume extraction, preference handling, retry behavior, and structured model errors.
+Build the React frontend and use `GET /models` to let users select an available provider and model.

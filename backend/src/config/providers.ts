@@ -23,7 +23,7 @@ export const providers: readonly ProviderConfig[] = [
     apiUrl:
       "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
     apiKeyEnvironmentName: "GEMINI_API_KEY",
-    models: ["gemini-2.5-flash"]
+    models: ["gemini-3.6-flash"]
   }
 ] as const;
 

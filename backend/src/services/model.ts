@@ -7,7 +7,7 @@ import {
 
 const REQUEST_TIMEOUT_MS = 30_000;
 
-interface GroqChatResponse {
+interface ChatCompletionResponse {
   choices?: Array<{
     message?: {
       content?: string;
@@ -61,52 +61,58 @@ export async function callModel(
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
     try {
-    const response = await fetch(provider.apiUrl, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model,
-        temperature: 0.1,
-        messages: [{ role: "user", content: prompt }]
-      }),
-      signal: controller.signal
-    });
+      const response = await fetch(provider.apiUrl, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model,
+          temperature: 0.1,
+          messages: [{ role: "user", content: prompt }]
+        }),
+        signal: controller.signal
+      });
 
-    if (response.status === 429) {
-      if (attempt < 2) {
-        await wait(500 * 2 ** attempt);
-        continue;
+      if (response.status === 429) {
+        if (attempt < 2) {
+          await wait(500 * 2 ** attempt);
+          continue;
+        }
+        throw new ModelRequestError(
+          429,
+          `${provider.name} rate limit exceeded`
+        );
       }
-      throw new ModelRequestError(429, "Groq rate limit exceeded");
-    }
 
-    if (response.status >= 500) {
-      if (attempt < 2) {
-        await wait(500 * 2 ** attempt);
-        continue;
+      if (response.status >= 500) {
+        if (attempt < 2) {
+          await wait(500 * 2 ** attempt);
+          continue;
+        }
+        throw new ModelRequestError(
+          502,
+          `${provider.name} request failed with status ${response.status}`
+        );
       }
-      throw new ModelRequestError(
-        502,
-        `Groq request failed with status ${response.status}`
-      );
-    }
 
-    if (!response.ok) {
-      throw new ModelRequestError(
-        502,
-        `Groq request failed with status ${response.status}`
-      );
-    }
+      if (!response.ok) {
+        throw new ModelRequestError(
+          502,
+          `${provider.name} request failed with status ${response.status}`
+        );
+      }
 
-    const payload = (await response.json()) as GroqChatResponse;
-    const content = payload.choices?.[0]?.message?.content?.trim();
+      const payload = (await response.json()) as ChatCompletionResponse;
+      const content = payload.choices?.[0]?.message?.content?.trim();
 
-    if (!content) {
-      throw new ModelRequestError(502, "Groq returned an empty response");
-    }
+      if (!content) {
+        throw new ModelRequestError(
+          502,
+          `${provider.name} returned an empty response`
+        );
+      }
 
       return {
         text: content,

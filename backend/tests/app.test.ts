@@ -1,6 +1,15 @@
 import request from "supertest";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi
+} from "vitest";
 import { createApp } from "../src/app.js";
+import { callModel } from "../src/services/model.js";
 import {
   getConfiguredProviders,
   getProvider,
@@ -32,6 +41,10 @@ afterAll(() => {
   } else {
     process.env.GROQ_API_KEY = originalGroqKey;
   }
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
 });
 
 describe("provider configuration", () => {
@@ -211,11 +224,58 @@ describe("POST /analyze", () => {
       advertisement: "Build APIs",
       resume: "TypeScript developer",
       provider: "groq",
-      model: "gemini-2.5-flash"
+      model: "unknown-model"
     });
 
     expect(response.status).toBe(400);
     expect(callModel).not.toHaveBeenCalled();
+  });
+
+  // Passes an explicitly selected Gemini model through to the model adapter.
+  it("uses the selected Gemini provider and model", async () => {
+    const originalGeminiKey = process.env.GEMINI_API_KEY;
+    process.env.GEMINI_API_KEY = "test-gemini-key";
+    const validResult = {
+      title: "Developer",
+      experienceYears: null,
+      technologies: ["TypeScript"],
+      workModel: null,
+      salary: null,
+      compatibility: 5,
+      gaps: [],
+      preferences: {
+        workModel: "unknown",
+        location: "unknown"
+      }
+    };
+    const modelCaller = vi.fn(async () => ({
+      text: JSON.stringify(validResult),
+      tokens: 10,
+      timeMs: 200
+    }));
+
+    try {
+      const app = createApp(modelCaller);
+      const response = await request(app).post("/analyze").send({
+        advertisement: "Developer",
+        resume: "Developer",
+        provider: "gemini",
+        model: "gemini-3.6-flash"
+      });
+
+      expect(response.status).toBe(200);
+      expect(modelCaller).toHaveBeenCalledWith(
+        expect.any(String),
+        "gemini",
+        "gemini-3.6-flash"
+      );
+    } finally {
+      if (originalGeminiKey === undefined) {
+        delete process.env.GEMINI_API_KEY;
+      } else {
+        process.env.GEMINI_API_KEY = originalGeminiKey;
+      }
+    }
   });
 
   // Confirms that invalid model JSON triggers exactly one additional model call.
@@ -250,5 +310,49 @@ describe("POST /analyze", () => {
 
     expect(response.status).toBe(400);
     expect(callModel).not.toHaveBeenCalled();
+  });
+});
+
+describe("callModel", () => {
+  // Uses the Gemini-compatible endpoint, key, and model without a live API call.
+  it("sends a request using Gemini provider configuration", async () => {
+    const originalGeminiKey = process.env.GEMINI_API_KEY;
+    process.env.GEMINI_API_KEY = "test-gemini-key";
+    const fetchMock = vi.fn(async () =>
+      new Response(
+        JSON.stringify({
+          choices: [{ message: { content: '{"title":"Developer"}' } }],
+          usage: { total_tokens: 18 }
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      )
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    try {
+      const result = await callModel(
+        "Analyze this job",
+        "gemini",
+        "gemini-3.6-flash"
+      );
+
+      expect(result.text).toBe('{"title":"Developer"}');
+      expect(result.tokens).toBe(18);
+      expect(fetchMock).toHaveBeenCalledWith(
+        "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: "Bearer test-gemini-key"
+          }),
+          body: expect.stringContaining('"model":"gemini-3.6-flash"')
+        })
+      );
+    } finally {
+      if (originalGeminiKey === undefined) {
+        delete process.env.GEMINI_API_KEY;
+      } else {
+        process.env.GEMINI_API_KEY = originalGeminiKey;
+      }
+    }
   });
 });
