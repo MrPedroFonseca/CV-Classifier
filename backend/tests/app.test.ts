@@ -1,11 +1,59 @@
 import request from "supertest";
 import { describe, expect, it, vi } from "vitest";
 import { createApp } from "../src/app.js";
+import {
+  getConfiguredProviders,
+  getProvider,
+  isProviderModelAllowed
+} from "../src/config/providers.js";
 
 const unusedModel = async () => ({
   text: "unused",
   tokens: 0,
   timeMs: 0
+});
+
+describe("provider configuration", () => {
+  // Confirms the Groq default remains in the central allowlist.
+  it("allows the configured Groq model", () => {
+    expect(
+      isProviderModelAllowed("groq", "openai/gpt-oss-120b")
+    ).toBe(true);
+  });
+
+  // Keeps provider lookups and model allowlists in one tested source.
+  it("rejects a model that is not allowed for its provider", () => {
+    expect(isProviderModelAllowed("groq", "unknown-model")).toBe(false);
+  });
+
+  // Finds provider details without exposing secret values.
+  it("returns provider configuration without API keys", () => {
+    expect(getProvider("gemini")?.name).toBe("Google Gemini");
+  });
+
+  // Checks configured-provider discovery using environment variables.
+  it("filters providers by configured API keys", () => {
+    const originalGroqKey = process.env.GROQ_API_KEY;
+    const originalGeminiKey = process.env.GEMINI_API_KEY;
+
+    delete process.env.GROQ_API_KEY;
+    process.env.GEMINI_API_KEY = "test-key";
+
+    expect(getConfiguredProviders().map((provider) => provider.id)).toEqual([
+      "gemini"
+    ]);
+
+    if (originalGroqKey === undefined) {
+      delete process.env.GROQ_API_KEY;
+    } else {
+      process.env.GROQ_API_KEY = originalGroqKey;
+    }
+    if (originalGeminiKey === undefined) {
+      delete process.env.GEMINI_API_KEY;
+    } else {
+      process.env.GEMINI_API_KEY = originalGeminiKey;
+    }
+  });
 });
 
 describe("GET /health", () => {
