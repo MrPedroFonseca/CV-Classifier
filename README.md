@@ -91,6 +91,13 @@ npm run build
 npm run lint
 ```
 
+## Model Evaluation
+
+The six fictional evaluation cases and instructions are in
+[`examples/README.md`](./examples/README.md). They provide a consistent dataset
+for comparing analysis correctness, compatibility scores, response time, and
+token usage across models. No live model comparisons have been run yet.
+
 ## Next Phase
 
-Evaluate analysis quality with fictional resumes and job advertisements, then refine the prompt and result presentation.
+Run the evaluation cases with the configured models, record the results, and refine the prompt based on observed errors.

@@ -250,11 +250,11 @@ Ready when: an end-to-end analysis works through the interface and errors are un
 
 - Write Vitest unit tests for schemas, error handling, and allowlists.
 - Mock model calls in tests.
-- Store 5 to 10 real advertisements and a fictional resume in `examples/`.
+- Store 5 to 10 fictional job advertisements and candidate profiles with evaluation checks in `examples/`. Do not include real resumes or contact details.
 - Run them across providers and record score, time, and correctness.
 - Adjust the prompt based on results.
 
-Ready when: tests pass and the repository contains a small model comparison.
+Ready when: tests pass and the repository contains a repeatable dataset and a small model comparison.
 
 ### Phase 6: README and Publication
 

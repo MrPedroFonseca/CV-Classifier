@@ -1,0 +1,256 @@
+{
+  "datasetVersion": 1,
+  "description": "Six fully fictional job-analysis cases for manual model evaluation.",
+  "cases": [
+    {
+      "id": "remote-frontend-match",
+      "description": "Checks a strong skills match, a stated salary, and a compatible remote preference.",
+      "advertisement": "Frontend Engineer\n\nA fully remote product team is hiring a frontend engineer to build accessible web interfaces.\n\nRequirements:\n- At least 3 years of professional frontend experience\n- Strong React and TypeScript skills\n- Experience with browser testing\n\nWork arrangement: Fully remote within Portugal.\nAnnual salary: EUR 55,000-68,000 gross.",
+      "resume": "Frontend engineer with 4 years of experience building accessible web applications. Professional experience with React, TypeScript, Vite, and browser testing. Delivered reusable UI components and improved page performance.",
+      "preferences": {
+        "models": ["remote"],
+        "locations": []
+      },
+      "checks": [
+        {
+          "field": "technologies",
+          "mustInclude": ["React", "TypeScript"]
+        },
+        {
+          "field": "experienceYears",
+          "meaning": "The advertisement requires at least 3 years."
+        },
+        {
+          "field": "workModel",
+          "expected": "remote"
+        },
+        {
+          "field": "salary",
+          "meaning": "Report the stated EUR 55,000-68,000 gross annual range."
+        },
+        {
+          "field": "compatibility",
+          "min": 7,
+          "max": 10
+        },
+        {
+          "field": "preferences.workModel",
+          "expected": "compatible"
+        },
+        {
+          "field": "preferences.location",
+          "expected": "unknown"
+        }
+      ]
+    },
+    {
+      "id": "hybrid-lisbon-office-days-conflict",
+      "description": "Checks that exceeding the preferred office-day limit is marked incompatible.",
+      "advertisement": "Backend Engineer\n\nA software team is hiring a backend engineer to maintain payment services.\n\nRequirements:\n- At least 4 years of backend development\n- Java, Spring Boot, and PostgreSQL\n- Experience operating production services\n\nNice to have: Kafka.\n\nWork arrangement: Hybrid in Lisbon, with 3 office days each week.",
+      "resume": "Backend engineer with 5 years of experience maintaining Java and Spring Boot services. Worked with PostgreSQL, Docker, monitoring, and production incident response. No Kafka experience is listed.",
+      "preferences": {
+        "models": ["hybrid"],
+        "locations": [
+          {
+            "city": "Lisbon",
+            "maxDays": 1
+          }
+        ]
+      },
+      "checks": [
+        {
+          "field": "technologies",
+          "mustInclude": ["Java", "Spring Boot", "PostgreSQL"]
+        },
+        {
+          "field": "workModel",
+          "expected": "hybrid"
+        },
+        {
+          "field": "salary",
+          "expected": null
+        },
+        {
+          "field": "preferences.workModel",
+          "expected": "compatible"
+        },
+        {
+          "field": "preferences.location",
+          "expected": "incompatible",
+          "reason": "The advertisement requires 3 office days in Lisbon; the preference allows 1."
+        },
+        {
+          "field": "gaps",
+          "mustNotInclude": ["Kafka"],
+          "reason": "Kafka is listed as nice to have, not a requirement."
+        }
+      ]
+    },
+    {
+      "id": "onsite-port-work-model-and-skill-mismatch",
+      "description": "Checks separate work-model and office-day conflicts alongside missing required skills.",
+      "advertisement": "Platform Engineer\n\nA company is hiring a platform engineer to build and support internal services.\n\nRequirements:\n- 5 years of experience with Kotlin and Spring\n- Production experience with AWS\n\nWork arrangement: On-site in Porto, 5 days per week.",
+      "resume": "Frontend developer with 3 years of experience building interfaces with React, TypeScript, CSS, and browser testing. No backend or cloud platform experience is listed.",
+      "preferences": {
+        "models": ["remote"],
+        "locations": [
+          {
+            "city": "Porto",
+            "maxDays": 2
+          }
+        ]
+      },
+      "checks": [
+        {
+          "field": "technologies",
+          "mustInclude": ["Kotlin", "Spring", "AWS"]
+        },
+        {
+          "field": "workModel",
+          "expected": "on-site"
+        },
+        {
+          "field": "preferences.workModel",
+          "expected": "incompatible"
+        },
+        {
+          "field": "preferences.location",
+          "expected": "incompatible",
+          "reason": "The advertisement requires 5 office days in Porto; the preference allows 2."
+        },
+        {
+          "field": "gaps",
+          "mustInclude": ["Kotlin", "Spring", "AWS"]
+        },
+        {
+          "field": "compatibility",
+          "min": 0,
+          "max": 4
+        }
+      ]
+    },
+    {
+      "id": "missing-salary-work-model-and-location",
+      "description": "Checks that missing advertisement details remain unknown instead of being inferred from preferences.",
+      "advertisement": "Junior Data Analyst\n\nA small analytics team needs a junior analyst to prepare datasets, maintain SQL reports, and explain findings to non-technical colleagues.\n\nRequirements:\n- Basic SQL knowledge\n- Careful handling of spreadsheets\n- Clear written communication\n\nThe role is suitable for candidates who are curious and detail-oriented.",
+      "resume": "Entry-level analyst with experience using SQL and spreadsheets in course projects. Prepared simple reports, checked data quality, and documented findings for classmates.",
+      "preferences": {
+        "models": ["remote"],
+        "locations": [
+          {
+            "city": "Madrid",
+            "maxDays": 1
+          }
+        ]
+      },
+      "checks": [
+        {
+          "field": "technologies",
+          "mustInclude": ["SQL"]
+        },
+        {
+          "field": "experienceYears",
+          "expected": null
+        },
+        {
+          "field": "workModel",
+          "expected": null
+        },
+        {
+          "field": "salary",
+          "expected": null
+        },
+        {
+          "field": "preferences.workModel",
+          "expected": "unknown"
+        },
+        {
+          "field": "preferences.location",
+          "expected": "unknown"
+        }
+      ]
+    },
+    {
+      "id": "hybrid-without-office-details",
+      "description": "Checks that a named work model does not imply an unstated location or office-day schedule.",
+      "advertisement": "Product Designer\n\nA design team is hiring a product designer to improve workflows and collaborate with engineers.\n\nRequirements:\n- Experience with user research and prototyping\n- Ability to explain design decisions\n\nWork arrangement: Hybrid. The team meets in person periodically.",
+      "resume": "Product designer with 4 years of experience in user research, wireframing, prototyping, and design handoff. Collaborated with engineers to improve onboarding and account-management workflows.",
+      "preferences": {
+        "models": ["hybrid"],
+        "locations": [
+          {
+            "city": "Lisbon",
+            "maxDays": 1
+          }
+        ]
+      },
+      "checks": [
+        {
+          "field": "workModel",
+          "expected": "hybrid"
+        },
+        {
+          "field": "preferences.workModel",
+          "expected": "compatible"
+        },
+        {
+          "field": "preferences.location",
+          "expected": "unknown"
+        },
+        {
+          "field": "salary",
+          "expected": null
+        }
+      ]
+    },
+    {
+      "id": "nonsensical-advertisement",
+      "description": "Checks that unrelated text does not produce invented job details.",
+      "advertisement": "The violet kettle borrowed seven clouds from a silent staircase. Blue paragraphs chase a quiet violin while Tuesday forgets the shape of a window.",
+      "resume": "Fictional candidate with experience in bookkeeping, spreadsheet cleanup, and monthly budget reports.",
+      "preferences": {
+        "models": ["remote"],
+        "locations": []
+      },
+      "checks": [
+        {
+          "field": "title",
+          "meaning": "Do not invent a job title; use a neutral indication that the advertisement is unclear."
+        },
+        {
+          "field": "experienceYears",
+          "expected": null
+        },
+        {
+          "field": "technologies",
+          "expected": []
+        },
+        {
+          "field": "workModel",
+          "expected": null
+        },
+        {
+          "field": "salary",
+          "expected": null
+        },
+        {
+          "field": "gaps",
+          "expected": []
+        },
+        {
+          "field": "preferences.workModel",
+          "expected": "unknown"
+        },
+        {
+          "field": "preferences.location",
+          "expected": "unknown"
+        },
+        {
+          "field": "compatibility",
+          "min": 0,
+          "max": 2
+        }
+      ]
+    }
+  ]
+}
