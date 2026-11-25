@@ -29,6 +29,37 @@ Initial preparation is complete. The backend and frontend are separated, and the
 2. Configure a personal provider API key. Never commit the key to the repository.
 3. Never add real resumes to the repository.
 
+## Run the Backend
+
+```powershell
+cd backend
+npm install
+npm run dev
+```
+
+The server listens on `http://localhost:3001` by default. Configure `GROQ_API_KEY` in `backend/.env`.
+
+## Backend Endpoints
+
+- `GET /health`: reports server health.
+- `POST /analyze`: validates an advertisement and calls the configured Groq model.
+
+Example:
+
+```powershell
+$body = @{ advertisement = "We are hiring a TypeScript developer." } | ConvertTo-Json
+Invoke-RestMethod -Method Post -Uri "http://localhost:3001/analyze" -ContentType "application/json" -Body $body
+```
+
+## Backend Validation
+
+```powershell
+cd backend
+npm test
+npm run lint
+npm run build
+```
+
 ## Next Phase
 
-Create the minimum backend with TypeScript and Express, plus a `POST /analyze` endpoint that calls the configured Groq model.
+Add the Zod result schema, resume extraction, preference handling, retry behavior, and structured model errors.
